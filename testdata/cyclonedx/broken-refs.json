@@ -1,0 +1,27 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "components": [
+    {
+      "bom-ref": "pkg:npm/%40acme/component@1.0.0",
+      "type": "library",
+      "name": "component",
+      "version": "1.0.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lodash@4.17.21",
+      "type": "library",
+      "name": "lodash",
+      "version": "4.17.21"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg%253Anpm%252F%252540acme%252Fcomponent%25401.0.0",
+      "dependsOn": [
+        "pkg:npm/lodash@4.17.21"
+      ]
+    }
+  ]
+}

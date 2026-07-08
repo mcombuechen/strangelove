@@ -37,7 +37,26 @@ func parseCycloneDX(f SBOMFormat, r io.Reader) (*Document, error) {
 		return nil, fmt.Errorf("components: %w", err)
 	}
 
-	return &Document{Format: f, Meta: meta, Components: components, doc: bom}, nil
+	graph := newDependencyGraph(components)
+
+	if bom.Dependencies != nil {
+		for _, dep := range *bom.Dependencies {
+			if dep.Dependencies == nil {
+				continue
+			}
+			for _, target := range *dep.Dependencies {
+				graph.addEdge(dep.Ref, target)
+			}
+		}
+	}
+
+	root := ""
+	if bom.Metadata != nil && bom.Metadata.Component != nil {
+		root = bom.Metadata.Component.BOMRef
+	}
+	graph.ensureRoot(root)
+
+	return &Document{Format: f, Meta: meta, Components: components, Graph: graph, doc: bom}, nil
 }
 
 func metaFromCycloneDX(bom *cdx.BOM) (Meta, error) {

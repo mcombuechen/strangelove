@@ -40,7 +40,34 @@ func parseSPDX(f SBOMFormat, r io.Reader) (*Document, error) {
 		return nil, fmt.Errorf("components: %w", err)
 	}
 
-	return &Document{Format: f, Meta: meta, Components: components, doc: doc}, nil
+	graph := newDependencyGraph(components)
+
+	root := ""
+	for _, rel := range doc.Relationships {
+		if rel.RefB.SpecialID == "NOASSERTION" {
+			continue
+		}
+		if rel.RefA.DocumentRefID != "" || rel.RefB.DocumentRefID != "" {
+			continue
+		}
+		fromID := "SPDXRef-" + string(rel.RefA.ElementRefID)
+		toID := "SPDXRef-" + string(rel.RefB.ElementRefID)
+
+		if rel.Relationship == "DESCRIBES" && string(rel.RefA.ElementRefID) == "DOCUMENT" {
+			if n, ok := graph.Nodes[toID]; ok && n.Component != nil {
+				root = toID
+			}
+		}
+
+		if fromID == "SPDXRef-DOCUMENT" || toID == "SPDXRef-DOCUMENT" {
+			continue
+		}
+		graph.addEdge(fromID, toID)
+	}
+
+	graph.ensureRoot(root)
+
+	return &Document{Format: f, Meta: meta, Components: components, Graph: graph, doc: doc}, nil
 }
 
 func metaFromSPDX(doc *spdx.Document) (Meta, error) {

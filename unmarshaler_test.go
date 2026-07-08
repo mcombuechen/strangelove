@@ -191,6 +191,137 @@ func TestUnmarshaler_UnknownFormat(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestDependencyGraph_CycloneDX_JSON_Fixture(t *testing.T) {
+	f := openFixture(t, "testdata/cyclonedx/valid-bom.json")
+
+	u := NewUnmarshaler()
+	doc, err := u.Unmarshal(f)
+	require.NoError(t, err)
+
+	g := doc.Graph
+	require.NotNil(t, g)
+	assert.Equal(t, SyntheticRootID, g.Root)
+
+	n := g.Nodes
+	assert.Contains(t, n, SyntheticRootID)
+	assert.Contains(t, n, "pkg:npm/acme/component@1.0.0")
+	assert.Contains(t, n, "")
+
+	self := n["pkg:npm/acme/component@1.0.0"]
+	assert.NotNil(t, self.Component)
+	assert.Contains(t, self.DependsOn, "pkg:npm/acme/component@1.0.0")
+	assert.Contains(t, self.DependedBy, "pkg:npm/acme/component@1.0.0")
+
+	orphan := n[""]
+	assert.NotNil(t, orphan.Component)
+	assert.Contains(t, orphan.DependedBy, SyntheticRootID)
+	assert.Contains(t, n[SyntheticRootID].DependsOn, "")
+}
+
+func TestDependencyGraph_CycloneDX_BrokenRefs(t *testing.T) {
+	f := openFixture(t, "testdata/cyclonedx/broken-refs.json")
+
+	u := NewUnmarshaler()
+	doc, err := u.Unmarshal(f)
+	require.NoError(t, err)
+
+	g := doc.Graph
+	require.NotNil(t, g)
+	assert.Equal(t, SyntheticRootID, g.Root)
+
+	n := g.Nodes
+	assert.Contains(t, n, SyntheticRootID)
+	assert.Contains(t, n, "pkg:npm/%40acme/component@1.0.0")
+	assert.Contains(t, n, "pkg:npm/lodash@4.17.21")
+	assert.Contains(t, n, "pkg%253Anpm%252F%252540acme%252Fcomponent%25401.0.0")
+
+	stub := n["pkg%253Anpm%252F%252540acme%252Fcomponent%25401.0.0"]
+	assert.Nil(t, stub.Component, "broken ref should be a stub with nil Component")
+	assert.Contains(t, stub.DependsOn, "pkg:npm/lodash@4.17.21")
+
+	realComp := n["pkg:npm/%40acme/component@1.0.0"]
+	assert.NotNil(t, realComp.Component)
+	assert.Len(t, realComp.DependsOn, 0)
+	assert.Contains(t, realComp.DependedBy, SyntheticRootID)
+	assert.Contains(t, n[SyntheticRootID].DependsOn, "pkg:npm/%40acme/component@1.0.0")
+
+	lodash := n["pkg:npm/lodash@4.17.21"]
+	assert.NotNil(t, lodash.Component)
+	assert.Contains(t, lodash.DependedBy, "pkg%253Anpm%252F%252540acme%252Fcomponent%25401.0.0")
+}
+
+func TestDependencyGraph_SPDX_JSON_Fixture_2_2(t *testing.T) {
+	f := openFixture(t, "testdata/spdx/SPDXJSONExample-v2.2.spdx.json")
+
+	u := NewUnmarshaler()
+	doc, err := u.Unmarshal(f)
+	require.NoError(t, err)
+
+	g := doc.Graph
+	require.NotNil(t, g)
+	assert.Equal(t, "SPDXRef-Package", g.Root)
+	assert.NotContains(t, g.Nodes, "SPDXRef-DOCUMENT")
+
+	n := g.Nodes
+	pkg := n["SPDXRef-Package"]
+	require.NotNil(t, pkg)
+	assert.NotNil(t, pkg.Component)
+	assert.Contains(t, pkg.DependsOn, "SPDXRef-Saxon")
+
+	// SPDXRef-JenaLib is not a package in v2.2 — it's referenced in a
+	// relationship but has no SPDX element definition, making it a stub.
+	jena := n["SPDXRef-JenaLib"]
+	require.NotNil(t, jena)
+	assert.Nil(t, jena.Component)
+	assert.Contains(t, jena.DependedBy, "SPDXRef-Package")
+}
+
+func TestDependencyGraph_SPDX_JSON_Fixture_2_3(t *testing.T) {
+	f := openFixture(t, "testdata/spdx/SPDXJSONExample-v2.3.spdx.json")
+
+	u := NewUnmarshaler()
+	doc, err := u.Unmarshal(f)
+	require.NoError(t, err)
+
+	g := doc.Graph
+	require.NotNil(t, g)
+	assert.Equal(t, "SPDXRef-Package", g.Root)
+	assert.NotContains(t, g.Nodes, "SPDXRef-DOCUMENT")
+
+	n := g.Nodes
+	assert.Contains(t, n["SPDXRef-Package"].DependsOn, "SPDXRef-Saxon")
+
+	// Same as v2.2 — SPDXRef-JenaLib is undefined, creating a stub.
+	jena := n["SPDXRef-JenaLib"]
+	require.NotNil(t, jena)
+	assert.Nil(t, jena.Component)
+	assert.Contains(t, jena.DependedBy, "SPDXRef-Package")
+}
+
+func TestDependencyGraph_SPDX_TagValue_Fixture_2_2(t *testing.T) {
+	f := openFixture(t, "testdata/spdx/SPDXTagExample-v2.2.spdx")
+
+	u := NewUnmarshaler()
+	doc, err := u.Unmarshal(f)
+	require.NoError(t, err)
+
+	g := doc.Graph
+	require.NotNil(t, g)
+	assert.Equal(t, "SPDXRef-Package", g.Root)
+}
+
+func TestDependencyGraph_SPDX_TagValue_Fixture_2_3(t *testing.T) {
+	f := openFixture(t, "testdata/spdx/SPDXTagExample-v2.3.spdx")
+
+	u := NewUnmarshaler()
+	doc, err := u.Unmarshal(f)
+	require.NoError(t, err)
+
+	g := doc.Graph
+	require.NotNil(t, g)
+	assert.Equal(t, "SPDXRef-Package", g.Root)
+}
+
 func TestUnmarshaler_SPDX_JSON_Fixture_2_2(t *testing.T) {
 	f := openFixture(t, "testdata/spdx/SPDXJSONExample-v2.2.spdx.json")
 

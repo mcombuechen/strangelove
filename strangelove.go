@@ -153,12 +153,30 @@ type Meta struct {
 	Tools     []Tool
 }
 
+// DependencyGraph represents the dependency relationships between components
+// as a directed graph. Each node corresponds to a component (referenced by ID),
+// with outgoing edges (DependsOn) and incoming edges (DependedBy).
+type DependencyGraph struct {
+	Root  string           // component ID of the root ("@root" if synthetic)
+	Nodes map[string]*Node // component ID → Node
+}
+
+// Node represents a single vertex in the dependency graph.
+type Node struct {
+	ID         string
+	Component  *Component       // nil for synthetic/stub nodes (e.g. @root, broken refs)
+	DependsOn  map[string]*Node // targets of outgoing edges (this → dependency)
+	DependedBy map[string]*Node // sources of incoming edges (dependant → this)
+}
+
 // Document is the result of unmarshaling an SBOM. It contains the detected
-// format, parsed metadata, and a unified component inventory.
+// format, parsed metadata, a unified component inventory, and the dependency
+// graph.
 type Document struct {
 	Format     SBOMFormat
 	Meta       Meta
 	Components []Component
+	Graph      *DependencyGraph
 	doc        any
 }
 
