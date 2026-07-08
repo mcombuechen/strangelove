@@ -204,6 +204,13 @@ func componentsFromSPDX(doc *spdx.Document) ([]Component, error) {
 			})
 		}
 
+		for _, ref := range pkg.PackageExternalReferences {
+			if ref.Category == "PACKAGE-MANAGER" && ref.RefType == "purl" {
+				c.PackageURL = ref.Locator
+				break
+			}
+		}
+
 		comps = append(comps, c)
 	}
 	return comps, nil

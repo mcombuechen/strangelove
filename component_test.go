@@ -293,6 +293,16 @@ func TestComponents_SPDX_JSON_Fixture(t *testing.T) {
 
 	require.Len(t, glibc.Hashes, 3)
 
+	var jena Component
+	for _, c := range doc.Components {
+		if c.Name == "Jena" {
+			jena = c
+			break
+		}
+	}
+	require.NotNil(t, jena, "Jena package not found")
+	assert.Equal(t, "pkg:maven/org.apache.jena/apache-jena@3.12.0", jena.PackageURL)
+
 	var centos Component
 	for _, c := range doc.Components {
 		if c.Name == "centos" {
