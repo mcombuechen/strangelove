@@ -1,7 +1,6 @@
 package strangelove
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -176,9 +175,7 @@ func TestComponents_ComponentType_SPDX(t *testing.T) {
 }
 
 func TestComponents_SPDX_JSON_Fixture_2_2(t *testing.T) {
-	f, err := os.Open("testdata/spdx/SPDXJSONExample-v2.2.spdx.json")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/spdx/SPDXJSONExample-v2.2.spdx.json")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -210,9 +207,7 @@ func TestComponents_SPDX_JSON_Fixture_2_2(t *testing.T) {
 }
 
 func TestComponents_SPDX_TagValue_Fixture_2_2(t *testing.T) {
-	f, err := os.Open("testdata/spdx/SPDXTagExample-v2.2.spdx")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/spdx/SPDXTagExample-v2.2.spdx")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -235,9 +230,7 @@ func TestComponents_SPDX_TagValue_Fixture_2_2(t *testing.T) {
 }
 
 func TestComponents_SPDX_RDF_Fixture(t *testing.T) {
-	f, err := os.Open("testdata/spdx/SPDXRdfExample-v2.2.spdx.rdf")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/spdx/SPDXRdfExample-v2.2.spdx.rdf")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -264,9 +257,7 @@ func TestComponents_SPDX_RDF_Fixture(t *testing.T) {
 }
 
 func TestComponents_SPDX_JSON_Fixture(t *testing.T) {
-	f, err := os.Open("testdata/spdx/SPDXJSONExample-v2.3.spdx.json")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/spdx/SPDXJSONExample-v2.3.spdx.json")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -317,9 +308,7 @@ func TestComponents_SPDX_JSON_Fixture(t *testing.T) {
 }
 
 func TestComponents_SPDX_TagValue_Fixture(t *testing.T) {
-	f, err := os.Open("testdata/spdx/SPDXTagExample-v2.3.spdx")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/spdx/SPDXTagExample-v2.3.spdx")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -345,9 +334,7 @@ func TestComponents_SPDX_TagValue_Fixture(t *testing.T) {
 }
 
 func TestComponents_CycloneDX_JSON_Fixture(t *testing.T) {
-	f, err := os.Open("testdata/cyclonedx/valid-bom.json")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/cyclonedx/valid-bom.json")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -379,9 +366,7 @@ func TestComponents_CycloneDX_JSON_Fixture(t *testing.T) {
 }
 
 func TestComponents_CycloneDX_XML_Fixture(t *testing.T) {
-	f, err := os.Open("testdata/cyclonedx/valid-bom.xml")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/cyclonedx/valid-bom.xml")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)

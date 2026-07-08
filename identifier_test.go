@@ -3,7 +3,6 @@ package strangelove
 import (
 	"bytes"
 	"io"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -121,32 +120,26 @@ func TestIdentifier_LargeFixture(t *testing.T) {
 }
 
 func TestIdentifier_PlainJSON_FromFixture(t *testing.T) {
-	f, err := os.Open("testdata/not-sbom/plain.json")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/not-sbom/plain.json")
 
 	id := NewIdentifier()
-	_, err = id.Identify(f)
+	_, err := id.Identify(f)
 	require.ErrorIs(t, err, ErrUnknownFormat)
 }
 
 func TestIdentifier_PlainXML_FromFixture(t *testing.T) {
-	f, err := os.Open("testdata/not-sbom/plain.xml")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/not-sbom/plain.xml")
 
 	id := NewIdentifier()
-	_, err = id.Identify(f)
+	_, err := id.Identify(f)
 	require.ErrorIs(t, err, ErrUnknownFormat)
 }
 
 func TestIdentifier_EmptyFile(t *testing.T) {
-	f, err := os.Open("testdata/empty.txt")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/empty.txt")
 
 	id := NewIdentifier()
-	_, err = id.Identify(f)
+	_, err := id.Identify(f)
 	require.ErrorIs(t, err, ErrEmptyInput)
 }
 

@@ -112,9 +112,7 @@ func TestUnmarshaler_CycloneDX_JSON(t *testing.T) {
 }
 
 func TestUnmarshaler_CycloneDX_XML(t *testing.T) {
-	f, err := os.Open("testdata/cyclonedx/valid-bom.xml")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/cyclonedx/valid-bom.xml")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -150,9 +148,7 @@ func TestUnmarshaler_CycloneDX_BadTimestamp(t *testing.T) {
 }
 
 func TestUnmarshaler_CycloneDX_JSON_Fixture(t *testing.T) {
-	f, err := os.Open("testdata/cyclonedx/valid-bom.json")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/cyclonedx/valid-bom.json")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -196,9 +192,7 @@ func TestUnmarshaler_UnknownFormat(t *testing.T) {
 }
 
 func TestUnmarshaler_SPDX_JSON_Fixture_2_2(t *testing.T) {
-	f, err := os.Open("testdata/spdx/SPDXJSONExample-v2.2.spdx.json")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/spdx/SPDXJSONExample-v2.2.spdx.json")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -220,9 +214,7 @@ func TestUnmarshaler_SPDX_JSON_Fixture_2_2(t *testing.T) {
 }
 
 func TestUnmarshaler_SPDX_TagValue_Fixture_2_2(t *testing.T) {
-	f, err := os.Open("testdata/spdx/SPDXTagExample-v2.2.spdx")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/spdx/SPDXTagExample-v2.2.spdx")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -244,9 +236,7 @@ func TestUnmarshaler_SPDX_TagValue_Fixture_2_2(t *testing.T) {
 }
 
 func TestUnmarshaler_SPDX_JSON_Fixture(t *testing.T) {
-	f, err := os.Open("testdata/spdx/SPDXJSONExample-v2.3.spdx.json")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/spdx/SPDXJSONExample-v2.3.spdx.json")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -267,9 +257,7 @@ func TestUnmarshaler_SPDX_JSON_Fixture(t *testing.T) {
 }
 
 func TestUnmarshaler_SPDX_TagValue_Fixture(t *testing.T) {
-	f, err := os.Open("testdata/spdx/SPDXTagExample-v2.3.spdx")
-	require.NoError(t, err)
-	defer f.Close()
+	f := openFixture(t, "testdata/spdx/SPDXTagExample-v2.3.spdx")
 
 	u := NewUnmarshaler()
 	doc, err := u.Unmarshal(f)
@@ -287,4 +275,12 @@ func TestUnmarshaler_SPDX_TagValue_Fixture(t *testing.T) {
 	require.NotNil(t, sbom)
 	_, ok := sbom.(*spdx.Document)
 	require.True(t, ok)
+}
+
+func openFixture(t *testing.T, path string) *os.File {
+	t.Helper()
+	f, err := os.Open(path)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = f.Close() })
+	return f
 }
