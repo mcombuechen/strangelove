@@ -408,6 +408,42 @@ func TestUnmarshaler_SPDX_TagValue_Fixture(t *testing.T) {
 	require.True(t, ok)
 }
 
+func TestUnmarshal_SPDX_JSON(t *testing.T) {
+	data := `{"spdxVersion":"SPDX-2.3","dataLicense":"CC0-1.0","SPDXID":"SPDXRef-DOCUMENT","name":"test","documentNamespace":"https://example.com","creationInfo":{"created":"2024-01-15T10:30:00Z","creators":["Person: Test","Organization: Acme Corp","Tool: mytool-1.0"]}}`
+	doc, err := Unmarshal(strings.NewReader(data))
+	require.NoError(t, err)
+	assert.Equal(t, SBOMStandardSPDX, doc.Format.SBOMStandard)
+	assert.Equal(t, SerializationJSON, doc.Format.Serialization)
+	assert.Equal(t, "2.3", doc.Format.SpecVersion)
+	assert.Equal(t, time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC), doc.Meta.CreatedAt)
+
+	require.Len(t, doc.Meta.Authors, 2)
+	assert.Equal(t, AuthorPerson, doc.Meta.Authors[0].Type)
+	assert.Equal(t, "Test", doc.Meta.Authors[0].Name)
+	assert.Equal(t, AuthorOrganization, doc.Meta.Authors[1].Type)
+	assert.Equal(t, "Acme Corp", doc.Meta.Authors[1].Name)
+
+	require.Len(t, doc.Meta.Tools, 1)
+	assert.Equal(t, ToolTypeTool, doc.Meta.Tools[0].Type)
+	assert.Equal(t, "mytool-1.0", doc.Meta.Tools[0].Name)
+
+	sbom := doc.SBOM()
+	require.NotNil(t, sbom)
+	spdxDoc, ok := sbom.(*spdx.Document)
+	require.True(t, ok, "SBOM() should return *spdx.Document")
+	assert.Equal(t, "test", spdxDoc.DocumentName)
+}
+
+func TestUnmarshal_EmptyInput(t *testing.T) {
+	_, err := Unmarshal(bytes.NewReader(nil))
+	require.Error(t, err)
+}
+
+func TestUnmarshal_UnknownFormat(t *testing.T) {
+	_, err := Unmarshal(strings.NewReader("not an sbom"))
+	require.Error(t, err)
+}
+
 func openFixture(t *testing.T, path string) *os.File {
 	t.Helper()
 	f, err := os.Open(path)

@@ -41,7 +41,7 @@ func main() {
 	}
 	defer file.Close()
 
-	doc, err := strangelove.NewUnmarshaler().Unmarshal(file)
+	doc, err := strangelove.Unmarshal(file)
 	if err != nil {
 		log.Fatal(err)
 	}

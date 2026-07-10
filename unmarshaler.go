@@ -21,6 +21,12 @@ func WithIdentifier(id *Identifier) unmarshalerOption {
 	}
 }
 
+// Unmarshal identifies and parses an SBOM document from r using a default
+// Unmarshaler. It is a convenience wrapper around NewUnmarshaler().Unmarshal.
+func Unmarshal(r io.Reader) (*Document, error) {
+	return NewUnmarshaler().Unmarshal(r)
+}
+
 // NewUnmarshaler creates an Unmarshaler with the given options. By default it
 // uses a new Identifier with default settings.
 func NewUnmarshaler(opts ...unmarshalerOption) *Unmarshaler {
