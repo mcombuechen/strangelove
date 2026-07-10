@@ -14,8 +14,8 @@ There is no need to buffer files into memory or deal with incompatible format sc
 
 | Standard | Serializations | Target Versions |
 |---|---|---|
-| **CycloneDX** | JSON, XML | v1.4+ |
-| **SPDX** | JSON, Tag-Value | v2.2+ |
+| **CycloneDX** | JSON, XML | v1.4, v1.5, v1.6 |
+| **SPDX** | JSON, Tag-Value, RDF | v2.2, v2.3 |
 
 ## Usage
 
